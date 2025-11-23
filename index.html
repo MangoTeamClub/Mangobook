@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mango小说</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #fff9e6 0%, #fff5d9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(255, 193, 7, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .theme-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .theme-selector select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ffe082;
+            background: white;
+            cursor: pointer;
+            background: #fff8e1;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #333;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+            color: #333;
+        }
+        
+        .search-section {
+            padding: 25px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fff8e1;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #ffe082;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #ffc107;
+            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #ffc107;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .novel-item {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #fffdf6;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+        }
+        
+        .novel-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.25);
+            background: linear-gradient(135deg, #fffdf6 0%, #ffffff 100%);
+        }
+        
+        .novel-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .novel-title::before {
+            content: "📖";
+            font-size: 1.1rem;
+        }
+        
+        .novel-meta {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .novel-status {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .chapter-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .chapter-list-header h2 {
+            font-size: 1.4rem;
+            color: #333;
+            margin: 0;
+        }
+        
+        .chapter-count {
+            font-size: 0.95rem;
+            color: #666;
+            background: #fff8e1;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        
+        .chapter-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: white;
+        }
+        
+        .chapter-item:hover {
+            background: linear-gradient(135deg, #fffdf6 0%, #ffffff 100%);
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(255, 193, 7, 0.15);
+        }
+        
+        .chapter-title {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .chapter-title::before {
+            content: "📋";
+            font-size: 0.9rem;
+        }
+        
+        .content-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 600;
+        }
+        
+        .content-text {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: #444;
+            margin-bottom: 35px;
+            text-align: justify;
+            min-height: 350px;
+            background: #fffdf6;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .content-text p {
+            margin-bottom: 1.4em;
+            text-indent: 2em;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-top: 2px solid #f0f0f0;
+            gap: 15px;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            color: #666;
+        }
+        
+        .back-btn:hover {
+            background: linear-gradient(135deg, #ffecb3 0%, #ffe082 100%);
+            transform: translateY(-2px);
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .page-btn {
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover {
+            background: linear-gradient(135deg, #ffecb3 0%, #ffe082 100%);
+            transform: translateY(-1px);
+        }
+        
+        .page-btn.active {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #999;
+            font-size: 0.95rem;
+            border-top: 1px solid #f0f0f0;
+            background: #fff8e1;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 25px;
+            color: #e74c3c;
+            background-color: #ffeaea;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .dark-theme {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+        
+        .dark-theme .container {
+            background: #2c3e50;
+            color: #ecf0f1;
+        }
+        
+        .dark-theme .novel-item,
+        .dark-theme .chapter-item {
+            background: #34495e;
+            color: #ecf0f1;
+            border-color: #4a5f7a;
+        }
+        
+        .dark-theme .content-text {
+            background: #34495e;
+            color: #ecf0f1;
+            border-left-color: #ffc107;
+        }
+        
+        .dark-theme input[type="text"] {
+            background: #34495e;
+            color: #ecf0f1;
+            border-color: #4a5f7a;
+        }
+        
+        .dark-theme .search-section {
+            background: #34495e;
+        }
+        
+        .dark-theme footer {
+            background: #34495e;
+        }
+        
+        .eye-care-theme {
+            background: #f0f8e8;
+        }
+        
+        .eye-care-theme .container {
+            background: #f0f8e8;
+            color: #2d3b2d;
+        }
+        
+        .eye-care-theme .novel-item,
+        .eye-care-theme .chapter-item {
+            background: #f5fde8;
+            color: #2d3b2d;
+            border-color: #d8e8c8;
+        }
+        
+        .eye-care-theme .content-text {
+            background: #f5fde8;
+            color: #2d3b2d;
+            border-left-color: #8bc34a;
+        }
+        
+        .eye-care-theme input[type="text"] {
+            background: #f5fde8;
+            color: #2d3b2d;
+            border-color: #d8e8c8;
+        }
+        
+        .eye-care-theme .search-section {
+            background: #f5fde8;
+        }
+        
+        .eye-care-theme footer {
+            background: #f5fde8;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                border-radius: 12px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .navigation button {
+                width: 100%;
+            }
+            
+            .chapter-list-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .content-section {
+                padding: 20px;
+            }
+            
+            .content-text {
+                padding: 15px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="theme-selector">
+            <select id="themeSelector">
+                <option value="default">默认主题</option>
+                <option value="dark">暗色主题</option>
+                <option value="eye-care">护眼模式</option>
+            </select>
+        </div>
+        
+        <header>
+            <h1>Mango小说阅读器</h1>
+            <div class="subtitle">极简阅读体验 · 专业小说阅读器 | 接口源自网络切勿滥用</div>
+        </header>
+        
+        <section class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 输入小说名称..." value="霸总">
+                <button id="searchBtn">搜索小说</button>
+            </div>
+        </section>
+        
+        <div id="loading" class="loading hidden">正在搜索小说...</div>
+        
+        <section id="novelList" class="novel-list hidden"></section>
+        
+        <section id="chapterList" class="chapter-list hidden">
+            <div class="chapter-list-header">
+                <h2 id="chapterListTitle"></h2>
+                <div id="chapterCount" class="chapter-count"></div>
+            </div>
+            <div id="chaptersContainer"></div>
+            <div id="pagination" class="pagination"></div>
+        </section>
+        
+        <section id="contentSection" class="content-section hidden">
+            <h2 id="contentTitle" class="content-title"></h2>
+            <div id="contentText" class="content-text"></div>
+            <div class="navigation">
+                <button id="prevChapter" class="back-btn">⬅️ 上一章</button>
+                <button id="backToChapters" class="back-btn">📋 返回目录</button>
+                <button id="nextChapter">下一章 ➡️</button>
+            </div>
+        </section>
+        
+        <footer>
+            <p>小说阅读器 &copy; 2022-2025 | 极简阅读体验 | 专业小说阅读器</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM元素
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const novelList = document.getElementById('novelList');
+        const chapterList = document.getElementById('chapterList');
+        const chapterListTitle = document.getElementById('chapterListTitle');
+        const chapterCount = document.getElementById('chapterCount');
+        const chaptersContainer = document.getElementById('chaptersContainer');
+        const pagination = document.getElementById('pagination');
+        const contentSection = document.getElementById('contentSection');
+        const contentTitle = document.getElementById('contentTitle');
+        const contentText = document.getElementById('contentText');
+        const prevChapterBtn = document.getElementById('prevChapter');
+        const nextChapterBtn = document.getElementById('nextChapter');
+        const backToChaptersBtn = document.getElementById('backToChapters');
+        const themeSelector = document.getElementById('themeSelector');
+        
+        // 当前状态
+        let currentNovel = null;
+        let currentChapterIndex = 0;
+        let currentChapters = [];
+        let currentPage = 1;
+        const chaptersPerPage = 20;
+        
+        // 主题切换
+        themeSelector.addEventListener('change', function() {
+            const theme = this.value;
+            document.body.className = '';
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else if (theme === 'eye-care') {
+                document.body.classList.add('eye-care-theme');
+            }
+        });
+        
+        // 搜索小说
+        searchBtn.addEventListener('click', searchNovel);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchNovel();
+            }
+        });
+        
+        // 初始化搜索
+        window.addEventListener('load', function() {
+            searchNovel();
+        });
+        
+        async function searchNovel() {
+            const novelName = searchInput.value.trim();
+            if (!novelName) {
+                alert('请输入小说名称');
+                return;
+            }
+            
+            showLoading();
+            hideSections();
+            
+            try {
+                const response = await fetch(`https://api.jkyai.top/API/fqmfxs.php?name=${encodeURIComponent(novelName)}`);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.code === 200 && data.data && data.data.length > 0) {
+                    displayNovelList(data.data);
+                } else {
+                    novelList.innerHTML = '<div class="error-message">📚 未找到相关小说，请尝试其他关键词</div>';
+                    novelList.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('搜索小说时出错:', error);
+                hideLoading();
+                novelList.innerHTML = '<div class="error-message">❌ 搜索失败，请稍后重试</div>';
+                novelList.classList.remove('hidden');
+            }
+        }
+        
+        function displayNovelList(novels) {
+            novelList.innerHTML = '';
+            
+            novels.forEach(novel => {
+                const novelItem = document.createElement('div');
+                novelItem.className = 'novel-item';
+                
+                const title = document.createElement('div');
+                title.className = 'novel-title';
+                title.textContent = novel['小说名称'];
+                
+                const meta = document.createElement('div');
+                meta.className = 'novel-meta';
+                
+                const author = document.createElement('span');
+                author.textContent = `👤 作者：${novel['原创作者']}`;
+                
+                const status = document.createElement('span');
+                status.className = 'novel-status';
+                status.textContent = novel['是否完结'];
+                
+                const update = document.createElement('span');
+                update.textContent = `📝 ${novel['内容']}`;
+                
+                const latest = document.createElement('span');
+                latest.textContent = `📅 最近更新：${novel['最近更新']}`;
+                
+                meta.appendChild(author);
+                meta.appendChild(status);
+                meta.appendChild(update);
+                meta.appendChild(latest);
+                
+                novelItem.appendChild(title);
+                novelItem.appendChild(meta);
+                
+                novelItem.addEventListener('click', function() {
+                    currentNovel = {
+                        name: novel['小说名称'],
+                        href: novel['章节目录']
+                    };
+                    
+                    fetchChapters(novel['章节目录']);
+                });
+                
+                novelList.appendChild(novelItem);
+            });
+            
+            novelList.classList.remove('hidden');
+        }
+        
+        async function fetchChapters(href) {
+            showLoading();
+            hideSections();
+            
+            try {
+                const response = await fetch(href);
+                const data = await response.json();
+                
+                hideLoading();
+                
+                if (data.code === 200 && data.data && data.data.chapters) {
+                    displayChapterList(data.data.chapters, data.data.count);
+                } else {
+                    chaptersContainer.innerHTML = '<div class="error-message">❌ 获取目录失败，请稍后重试</div>';
+                    chapterList.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('获取章节目录时出错:', error);
+                hideLoading();
+                chaptersContainer.innerHTML = '<div class="error-message">❌ 获取目录失败，请稍后重试</div>';
+                chapterList.classList.remove('hidden');
+            }
+        }
+        
+        function displayChapterList(chapters, totalCount) {
+            currentChapters = chapters;
+            chaptersContainer.innerHTML = '';
+            pagination.innerHTML = '';
+            
+            chapterListTitle.textContent = currentNovel.name;
+            chapterCount.textContent = `共${totalCount}章`;
+            
+            // 计算分页
+            const totalPages = Math.ceil(chapters.length / chaptersPerPage);
+            
+            // 显示当前页的章节
+            const startIndex = (currentPage - 1) * chaptersPerPage;
+            const endIndex = Math.min(startIndex + chaptersPerPage, chapters.length);
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                const chapter = chapters[i];
+                const chapterItem = document.createElement('div');
+                chapterItem.className = 'chapter-item';
+                
+                const chapterTitle = document.createElement('div');
+                chapterTitle.className = 'chapter-title';
+                chapterTitle.textContent = chapter['章节名称'];
+                
+                chapterItem.appendChild(chapterTitle);
+                
+                chapterItem.addEventListener('click', function() {
+                    currentChapterIndex = i;
+                    fetchChapterContent(chapter['开始阅读']);
+                });
+                
+                chaptersContainer.appendChild(chapterItem);
+            }
+            
+            // 生成分页按钮
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBtn = document.createElement('button');
+                    pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    pageBtn.textContent = i;
+                    pageBtn.addEventListener('click', function() {
+                        currentPage = i;
+                        displayChapterList(chapters, totalCount);
+                    });
+                    pagination.appendChild(pageBtn);
+                }
+            }
+            
+            chapterList.classList.remove('hidden');
+        }
+        
+        async function fetchChapterContent(href) {
+            showLoading();
+            hideSections();
+            
+            try {
+                const response = await fetch(href);
+                const data = await response.text();
+                
+                hideLoading();
+                
+                // 显示章节内容
+                displayChapterContent(data);
+            } catch (error) {
+                console.error('获取章节内容时出错:', error);
+                hideLoading();
+                contentText.innerHTML = '<div class="error-message">❌ 获取内容失败，请稍后重试</div>';
+                contentSection.classList.remove('hidden');
+            }
+        }
+        
+        function displayChapterContent(data) {
+            contentTitle.textContent = currentChapters[currentChapterIndex]['章节名称'];
+            
+            // 清理和格式化内容
+            let formattedContent = data
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+            
+            // 将内容分割成段落
+            const paragraphs = formattedContent.split('\n\n');
+            
+            // 创建段落元素
+            contentText.innerHTML = '';
+            paragraphs.forEach(paragraph => {
+                if (paragraph.trim()) {
+                    const p = document.createElement('p');
+                    p.textContent = paragraph.trim();
+                    contentText.appendChild(p);
+                }
+            });
+            
+            contentSection.classList.remove('hidden');
+        }
+        
+        // 章节导航
+        prevChapterBtn.addEventListener('click', function() {
+            if (currentChapterIndex > 0) {
+                currentChapterIndex--;
+                const chapterHref = currentChapters[currentChapterIndex]['开始阅读'];
+                fetchChapterContent(chapterHref);
+            } else {
+                alert('已经是第一章了');
+            }
+        });
+        
+        nextChapterBtn.addEventListener('click', function() {
+            if (currentChapterIndex < currentChapters.length - 1) {
+                currentChapterIndex++;
+                const chapterHref = currentChapters[currentChapterIndex]['开始阅读'];
+                fetchChapterContent(chapterHref);
+            } else {
+                alert('已经是最后一章了');
+            }
+        });
+        
+        backToChaptersBtn.addEventListener('click', function() {
+            hideSections();
+            chapterList.classList.remove('hidden');
+        });
+        
+        // 辅助函数
+        function showLoading() {
+            loading.classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            loading.classList.add('hidden');
+        }
+        
+        function hideSections() {
+            novelList.classList.add('hidden');
+            chapterList.classList.add('hidden');
+            contentSection.classList.add('hidden');
+        }
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (contentSection.classList.contains('hidden')) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    prevChapterBtn.click();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    nextChapterBtn.click();
+                    break;
+                case 'Escape':
+                    backToChaptersBtn.click();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
